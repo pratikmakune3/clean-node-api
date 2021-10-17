@@ -1,15 +1,28 @@
-module.exports = () => {
-  router.post("/signup", new SignupRouter().route);
-
-  // router.post("/signin", new Router().signinRoute);
-};
-
-// signup-router
 const express = require("express");
 const router = express.Router();
 
+module.exports = () => {
+  const router = new SignupRouter();
+  router.post("/signup", ExpressRouterAdapter.adapt(router));
+};
+
+class ExpressRouterAdapter {
+  static adapt(router) {
+    // call router now...
+    return async (req, res) => {
+      const httpRequest = {
+        body: req.body,
+      };
+    };
+    const httpResponse = await router.route(httpRequest);
+    res.status(httpResponse.statusCode).json(httpResponse.body);
+  }
+}
+
+// Presentation layer
+// signup-router
 class SignupRouter {
-  // Refactored to - independent of expressjs
+  // Refactored to by getting rid of express' req and res - independent of expressjs
   async route(httpRequest) {
     const { email, password, repeatPassword } = httpRequest.body;
     const user = new SignupUsecase().signup(email, password, repeatPassword);
@@ -20,6 +33,7 @@ class SignupRouter {
   }
 }
 
+// Domain layer
 // signup-usecase
 class SignupUsecase {
   async signup(email, password, repeatPassword) {
@@ -30,6 +44,7 @@ class SignupUsecase {
   }
 }
 
+// Infra layer
 // add-account-repo
 const mongoose = require("mongoose");
 const AccountModel = mongoose.model("Account");
